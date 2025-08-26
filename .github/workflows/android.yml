@@ -1,4 +1,4 @@
-﻿name: build-apk
+name: build-apk
 
 on:
   workflow_dispatch:
@@ -9,6 +9,12 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     timeout-minutes: 120
+
+    env:
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
+      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ github.workspace }}/android-sdk/build-tools/34.0.0:${{ env.PATH }}
 
     steps:
       - name: Checkout
@@ -32,15 +38,46 @@ jobs:
           pip install wheel
           pip install buildozer cython==0.29.36
 
-      - name: Ensure buildozer.spec no BOM and has version
+      - name: Install Android SDK cmdline-tools
         run: |
-          # 去除 UTF-8 BOM（防止 '\ufeff[app]' 错误）
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          cd "$ANDROID_SDK_ROOT"
+          curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076702_latest.zip || \
+          curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
+          mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
+
+      - name: Install required Android packages
+        run: |
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "patcher;v4"
+          "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --list | head -n 50
+
+      - name: Prepare buildozer.spec
+        run: |
+          # 去 BOM
           sed -i '1s/^\xEF\xBB\xBF//' buildozer.spec
-          # 若缺少 version，则自动追加默认版本
+          # 确保 version 存在
           if ! grep -Eq '^[[:space:]]*version[[:space:]]*=' buildozer.spec; then
             sed -i '0,/^\[app\]$/!b;//a version = 0.1.0' buildozer.spec
           fi
-          echo "==== buildozer.spec ===="
+          # 强制使用稳定 API 34，避免拉取 rc 版 build-tools
+          if grep -Eq '^[[:space:]]*android\.api[[:space:]]*=' buildozer.spec; then
+            sed -i 's/^[[:space:]]*android\.api[[:space:]]*=.*/android.api = 34/' buildozer.spec
+          else
+            sed -i '0,/^\[android\]$/!b;//a android.api = 34' buildozer.spec
+          fi
+          # 接受 SDK 许可证
+          if grep -Eq '^[[:space:]]*android\.accept_sdk_license[[:space:]]*=' buildozer.spec; then
+            sed -i 's/^[[:space:]]*android\.accept_sdk_license[[:space:]]*=.*/android.accept_sdk_license = True/' buildozer.spec
+          else
+            sed -i '0,/^\[android\]$/!b;//a android.accept_sdk_license = True' buildozer.spec
+          fi
+          echo "===== buildozer.spec ====="
           cat buildozer.spec
 
       - name: Build debug APK
