@@ -35,37 +35,29 @@ jobs:
           pip install wheel
           pip install buildozer cython==0.29.36
 
-      # 用官方 Action 安装 Android SDK + 接受许可证 + 指定稳定包
-      - name: Setup Android SDK
+      - name: Setup Android SDK (stable packages)
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: latest
-          packages: |
-            platform-tools
-            platforms;android-34
-            build-tools;34.0.0
           accept-licenses: true
+          packages: platform-tools, platforms;android-34, build-tools;34.0.0
 
-      # 将 build-tools 加入 PATH（便于 aapt/aidl 等可用）
       - name: Add build-tools to PATH
         run: |
           echo "${ANDROID_SDK_ROOT}/build-tools/34.0.0" >> $GITHUB_PATH
+          echo "${ANDROID_SDK_ROOT}/platform-tools" >> $GITHUB_PATH
 
       - name: Prepare buildozer.spec
         run: |
-          # 去除 UTF-8 BOM
           sed -i '1s/^\xEF\xBB\xBF//' buildozer.spec || true
-          # 确保 version 存在
           if ! grep -Eq '^[[:space:]]*version[[:space:]]*=' buildozer.spec; then
             sed -i '0,/^\[app\]$/!b;//a version = 0.1.0' buildozer.spec
           fi
-          # 强制使用稳定 API 34
           if grep -Eq '^[[:space:]]*android\.api[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.api[[:space:]]*=.*/android.api = 34/' buildozer.spec
           else
             sed -i '0,/^\[android\]$/!b;//a android.api = 34' buildozer.spec
           fi
-          # 接受 SDK 许可证配置（冗余但安全）
           if grep -Eq '^[[:space:]]*android\.accept_sdk_license[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.accept_sdk_license[[:space:]]*=.*/android.accept_sdk_license = True/' buildozer.spec
           else
