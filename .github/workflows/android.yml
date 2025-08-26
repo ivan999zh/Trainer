@@ -117,11 +117,14 @@ jobs:
       - name: Build debug APK
         run: |
           buildozer -v android debug 2>&1 | tee build.log
-          if [ $? -ne 0 ]; then
-            echo "=== Last 100 lines of build log ==="
-            tail -n 100 build.log
-            echo "=== Full error search ==="
-            grep -i -A5 -B5 "error\|failed\|exception" build.log || true
+          echo "=== Build completed, checking results ==="
+          ls -la bin/ || echo "bin/ directory not found"
+          find . -name "*.apk" -type f || echo "No APK files found"
+          if [ ! -f bin/*.apk ]; then
+            echo "=== Last 50 lines of build log ==="
+            tail -n 50 build.log
+            echo "=== Error search ==="
+            grep -i -A3 -B3 "error\|failed\|exception" build.log | tail -n 20 || true
             exit 1
           fi
 
