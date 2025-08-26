@@ -116,7 +116,14 @@ jobs:
           "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --version
       - name: Build debug APK
         run: |
-          buildozer -v android debug
+          buildozer -v android debug 2>&1 | tee build.log
+          if [ $? -ne 0 ]; then
+            echo "=== Last 100 lines of build log ==="
+            tail -n 100 build.log
+            echo "=== Full error search ==="
+            grep -i -A5 -B5 "error\|failed\|exception" build.log || true
+            exit 1
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
