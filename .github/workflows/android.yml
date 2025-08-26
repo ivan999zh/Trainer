@@ -11,8 +11,6 @@ jobs:
     timeout-minutes: 120
 
     env:
-      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-      ANDROID_HOME: ${{ github.workspace }}/android-sdk
       JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
 
     steps:
@@ -37,25 +35,21 @@ jobs:
           pip install wheel
           pip install buildozer cython==0.29.36
 
-      - name: Install Android SDK cmdline-tools and accept licenses
-        run: |
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
-          cd "$ANDROID_SDK_ROOT"
-          curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076702_latest.zip || \
-          curl -L -o cmdline-tools.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip -q cmdline-tools.zip -d "$ANDROID_SDK_ROOT/cmdline-tools"
-          mv "$ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --licenses
-          # 添加到 PATH
-          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+      # 用官方 Action 安装 Android SDK + 接受许可证 + 指定稳定包
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: latest
+          packages: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
+          accept-licenses: true
 
-      - name: Install required Android packages
+      # 将 build-tools 加入 PATH（便于 aapt/aidl 等可用）
+      - name: Add build-tools to PATH
         run: |
-          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "patcher;v4"
-          # 添加其余路径
-          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_SDK_ROOT/build-tools/34.0.0" >> $GITHUB_PATH
-          sdkmanager --list | head -n 50
+          echo "${ANDROID_SDK_ROOT}/build-tools/34.0.0" >> $GITHUB_PATH
 
       - name: Prepare buildozer.spec
         run: |
@@ -71,7 +65,7 @@ jobs:
           else
             sed -i '0,/^\[android\]$/!b;//a android.api = 34' buildozer.spec
           fi
-          # 接受 SDK 许可证
+          # 接受 SDK 许可证配置（冗余但安全）
           if grep -Eq '^[[:space:]]*android\.accept_sdk_license[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.accept_sdk_license[[:space:]]*=.*/android.accept_sdk_license = True/' buildozer.spec
           else
