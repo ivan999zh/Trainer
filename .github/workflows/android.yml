@@ -10,14 +10,6 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 120
 
-    env:
-      JAVA_HOME: /usr/lib/jvm/java-17-openjdk-amd64
-      BZ_HOME: ${{ env.HOME }}/.buildozer/android/platform/android-sdk
-      ANDROID_SDK_ROOT: ${{ env.HOME }}/.buildozer/android/platform/android-sdk
-      ANDROID_HOME: ${{ env.HOME }}/.buildozer/android/platform/android-sdk
-      ANDROIDSDK: ${{ env.HOME }}/.buildozer/android/platform/android-sdk
-      ANDROID_BUILD_TOOLS_VERSION: 34.0.0
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,62 +32,68 @@ jobs:
           pip install wheel
           pip install buildozer cython==0.29.36
 
-      - name: Prepare Android SDK for Buildozer (pin 34.0.0)
-        env:
-          SYS_SDK: /usr/local/lib/android/sdk
+      - name: Define SDK paths via GITHUB_ENV
+        run: |
+          echo "JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64" >> $GITHUB_ENV
+          echo "SYS_SDK=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+          echo "ANDROIDSDK=$HOME/.buildozer/android/platform/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_BUILD_TOOLS_VERSION=34.0.0" >> $GITHUB_ENV
+
+      - name: Add Android tools to PATH
+        run: |
+          echo "/usr/local/lib/android/sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "/usr/local/lib/android/sdk/platform-tools" >> $GITHUB_PATH
+
+      - name: Install stable Android SDK into Buildozer SDK root
         run: |
           set -e
-          mkdir -p "${ANDROID_SDK_ROOT}"
-          # 确保 sdkmanager 可用
-          echo "${SYS_SDK}/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "${SYS_SDK}/platform-tools" >> $GITHUB_PATH
-
-          # 在 Buildozer 专用目录安装稳定版本（用系统 sdkmanager 指定 --sdk_root）
-          yes | "${SYS_SDK}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --licenses || true
-          yes | "${SYS_SDK}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" "cmdline-tools;latest"
-          yes | "${SYS_SDK}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" "platform-tools"
-          yes | "${SYS_SDK}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" "platforms;android-34"
-          yes | "${SYS_SDK}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" "build-tools;34.0.0"
-
-          # 把专用 SDK 的工具加入 PATH（aapt/aidl）
-          echo "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "${ANDROID_SDK_ROOT}/platform-tools" >> $GITHUB_PATH
-          echo "${ANDROID_SDK_ROOT}/build-tools/34.0.0" >> $GITHUB_PATH
-
-          # 列出已安装，确认 34.0.0 在位
-          ls -la "${ANDROID_SDK_ROOT}/build-tools" || true
-          "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --list | head -n 80 || true
+          mkdir -p "$ANDROID_SDK_ROOT"
+          # 接受系统 SDK 许可（确保 sdkmanager 不交互）
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          # 把稳定版本安装到 Buildozer 的 SDK 根（--sdk_root）
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "cmdline-tools;latest"
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platform-tools"
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "platforms;android-34"
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" "build-tools;34.0.0"
+          # 将 Buildozer 自带 SDK 的工具加入 PATH（aapt/aidl）
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/build-tools/34.0.0" >> $GITHUB_PATH
+          ls -la "$ANDROID_SDK_ROOT/build-tools" || true
 
       - name: Prepare buildozer.spec (lock versions and sdk_path)
         run: |
+          # 去除 UTF-8 BOM
           sed -i '1s/^\xEF\xBB\xBF//' buildozer.spec || true
-          # version
+          # 确保 version
           if ! grep -Eq '^[[:space:]]*version[[:space:]]*=' buildozer.spec; then
             sed -i '0,/^\[app\]$/!b;//a version = 0.1.0' buildozer.spec
           fi
-          # android.api
+          # 强制 API 34
           if grep -Eq '^[[:space:]]*android\.api[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.api[[:space:]]*=.*/android.api = 34/' buildozer.spec
           else
             sed -i '0,/^\[android\]$/!b;//a android.api = 34' buildozer.spec
           fi
-          # android.build_tools_version
+          # 强制 Build-Tools 34.0.0
           if grep -Eq '^[[:space:]]*android\.build_tools_version[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.build_tools_version[[:space:]]*=.*/android.build_tools_version = 34.0.0/' buildozer.spec
           else
             sed -i '0,/^\[android\]$/!b;//a android.build_tools_version = 34.0.0' buildozer.spec
           fi
-          # android.accept_sdk_license
+          # 接受许可
           if grep -Eq '^[[:space:]]*android\.accept_sdk_license[[:space:]]*=' buildozer.spec; then
             sed -i 's/^[[:space:]]*android\.accept_sdk_license[[:space:]]*=.*/android.accept_sdk_license = True/' buildozer.spec
           else
             sed -i '0,/^\[android\]$/!b;//a android.accept_sdk_license = True' buildozer.spec
           fi
-          # android.sdk_path 指向 $HOME 下的 Buildozer 目录（p4a 默认查这里）
+          # 指定 sdk_path 为 Buildozer SDK 根
           if grep -Eq '^[[:space:]]*android\.sdk_path[[:space:]]*=' buildozer.spec; then
-            sed -i "s|^[[:space:]]*android\.sdk_path[[:space:]]*=.*|android.sdk_path = ${ANDROID_SDK_ROOT}|" buildozer.spec
+            sed -i "s|^[[:space:]]*android\.sdk_path[[:space:]]*=.*|android.sdk_path = $ANDROID_SDK_ROOT|" buildozer.spec
           else
-            sed -i "0,/^\[android\]$/!b;//a android.sdk_path = ${ANDROID_SDK_ROOT}" buildozer.spec
+            sed -i "0,/^\[android\]$/!b;//a android.sdk_path = $ANDROID_SDK_ROOT" buildozer.spec
           fi
           echo "===== buildozer.spec ====="
           cat buildozer.spec
