@@ -97,7 +97,13 @@ jobs:
           fi
           echo "===== buildozer.spec ====="
           cat buildozer.spec
-
+      - name: Create legacy sdkmanager path shim
+        run: |
+          mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
+          ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager" "$ANDROID_SDK_ROOT/tools/bin/avdmanager" || true
+          # 验证
+          "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --version
       - name: Build debug APK
         run: |
           buildozer -v android debug
