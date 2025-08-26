@@ -18,7 +18,17 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-
+      - name: Cache buildozer/p4a/pip/ccache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.buildozer
+            ~/.cache/pip
+            ~/.cache/python-for-android
+            ~/.ccache
+          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec', '**/*.py', '.github/workflows/android.yml') }}
+          restore-keys: |
+            buildozer-${{ runner.os }}-
       - name: Install system deps
         run: |
           sudo apt update
