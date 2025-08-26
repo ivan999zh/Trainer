@@ -115,7 +115,19 @@ jobs:
           # 验证
           "$ANDROID_SDK_ROOT/tools/bin/sdkmanager" --version
       - name: Build debug APK
+        env:
+          ANDROIDAPI: "34"
+          ANDROIDMINAPI: "21"
+          ANDROID_BUILD_TOOLS_VERSION: "34.0.0"
+          ANDROID_SDK_ROOT: "$ANDROID_SDK_ROOT"
+          ANDROID_HOME: "$ANDROID_SDK_ROOT"
         run: |
+          echo "=== Environment check ==="
+          echo "ANDROIDAPI: $ANDROIDAPI"
+          echo "ANDROIDMINAPI: $ANDROIDMINAPI"
+          echo "ANDROID_BUILD_TOOLS_VERSION: $ANDROID_BUILD_TOOLS_VERSION"
+          echo "ANDROID_SDK_ROOT: $ANDROID_SDK_ROOT"
+          echo "=== Starting build ==="
           buildozer -v android debug 2>&1 | tee build.log
           echo "=== Build completed, checking results ==="
           ls -la bin/ || echo "bin/ directory not found"
