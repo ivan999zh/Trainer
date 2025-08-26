@@ -1,0 +1,26 @@
+﻿[
+  {
+    "type": "mcq",
+    "category": "测试理论",
+    "difficulty": "初",
+    "question": "以下哪项属于黑盒测试用例设计方法？",
+    "options": ["桩模块法","因果图法","调试法","静态扫描"],
+    "answer": "1",
+    "tags": ["黑盒","用例"]
+  },
+  {
+    "type": "qa",
+    "category": "工具-Jmeter",
+    "difficulty": "中",
+    "question": "简述你在 JMeter 中实现参数化与关联的做法。",
+    "answer": "CSV Data Set; 正则/JSON Extractor 进行关联",
+    "tags": ["JMeter","关联"]
+  },
+  {
+    "type": "code",
+    "category": "编程-Python",
+    "difficulty": "中",
+    "question": "实现一个去重且保持顺序的函数 dedup(seq)。",
+    "answer": "参考：用集合记录已见元素，逐一追加"
+  }
+]
