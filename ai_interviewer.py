@@ -1,4 +1,5 @@
-import random, re
+import random
+import re
 
 SEED_QUESTIONS = [
     "请做一个自我介绍，并简述你最近的项目职责。",
@@ -24,4 +25,4 @@ class AIInterviewer:
                 return q
         if random.random() < 0.2:
             return "能否更量化一点？给出指标、工具与结论。"
-        return None`
+        return None
