@@ -1,172 +1,173 @@
-﻿<HomeScreen>:
-name: "home"
-BoxLayout:
-orientation: "vertical"
-padding: "12dp"; spacing: "8dp"
-Label:
-text: "测试刷题 & 模拟面试"
-size_hint_y: None; height: "36dp"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "题库管理"; on_release: app.root.current = "manage"
-Button: text: "练习模式"; on_release: app.root.current = "practice"
-Button: text: "模拟面试"; on_release: app.root.current = "interview"
-Label:
-text: "功能：分类、随机出题、错题本、AI追问、录音回放、简报统计"
-Label:
-text: ""
+# app.kv
+<HomeScreen>:
+	name: "home"
+	BoxLayout:
+		orientation: "vertical"
+		padding: "12dp"; spacing: "8dp"
+		Label:
+			text: "测试刷题 & 模拟面试"
+			size_hint_y: None; height: "36dp"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "题库管理"; on_release: app.root.current = "manage"
+			Button: text: "练习模式"; on_release: app.root.current = "practice"
+			Button: text: "模拟面试"; on_release: app.root.current = "interview"
+		Label:
+			text: "功能：分类、随机出题、错题本、AI追问、录音回放、简易报告"
+		Label:
+			text: ""
 
 <ManageScreen>:
-name: "manage"
-BoxLayout:
-orientation: "vertical"; padding: "12dp"; spacing: "8dp"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "返回"; on_release: app.root.current = "home"
-Label: text: "题库管理"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-TextInput:
-id: excel_path; hint_text: "选择/输入 Excel 路径（.xlsx）"
-Button:
-text: "导入"
-on_release: root.import_excel(excel_path.text)
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Spinner:
-id: type_spinner; text: "mcq"; values: ["mcq","qa","code"]; size_hint_x: .3
-Spinner:
-id: cat_spinner; text: "测试理论"; values: ["测试理论","工具-Postman","工具-Jmeter","工具-Selenium","自动化框架","性能安全","编程-Python","编程-SQL"]; size_hint_x: .5
-Spinner:
-id: diff_spinner; text: "初"; values: ["初","中","高"]; size_hint_x: .2
-TextInput:
-id: q_input; hint_text: "题干"
-multiline: True; size_hint_y: None; height: "100dp"
-TextInput:
-id: opt_input; hint_text: "（MCQ）每行一个选项"
-multiline: True; size_hint_y: None; height: "100dp"
-TextInput:
-id: ans_input; hint_text: "参考答案（MCQ填正确选项索引，如0/1/2；非选择题填关键要点）"
-multiline: True; size_hint_y: None; height: "80dp"
-TextInput:
-id: tag_input; hint_text: "标签（逗号分隔）"
-multiline: False; size_hint_y: None; height: "40dp"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "添加题目"; on_release: root.add_manual()
-Button: text: "清空表单"; on_release: root.clear_form()
-Label: text: root.status; color: (0,1,0,1)
-Label: text: "分类统计："
-ScrollView:
-Label:
-id: counts
-text: ""
-text_size: self.width, None
-size_hint_y: None
-height: self.texture_size[1]
+	name: "manage"
+	BoxLayout:
+		orientation: "vertical"; padding: "12dp"; spacing: "8dp"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "返回"; on_release: app.root.current = "home"
+			Label: text: "题库管理"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			TextInput:
+				id: excel_path; hint_text: "选择/输入 Excel 路径（.xlsx）"
+			Button:
+				text: "导入"
+				on_release: root.import_excel(excel_path.text)
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Spinner:
+				id: type_spinner; text: "mcq"; values: ["mcq","qa","code"]; size_hint_x: .3
+			Spinner:
+				id: cat_spinner; text: "测试理论"; values: ["测试理论","工具-Postman","工具-Jmeter","工具-Selenium","自动化框架","性能安全","编程-Python","编程-SQL"]; size_hint_x: .5
+			Spinner:
+				id: diff_spinner; text: "初"; values: ["初","中","高"]; size_hint_x: .2
+		TextInput:
+			id: q_input; hint_text: "题干"
+			multiline: True; size_hint_y: None; height: "100dp"
+		TextInput:
+			id: opt_input; hint_text: "（MCQ）每行一个选项"
+			multiline: True; size_hint_y: None; height: "100dp"
+		TextInput:
+			id: ans_input; hint_text: "参考答案（MCQ填正确选项索引，如0/1/2；非选择题填关键要点）"
+			multiline: True; size_hint_y: None; height: "80dp"
+		TextInput:
+			id: tag_input; hint_text: "标签（逗号分隔）"
+			multiline: False; size_hint_y: None; height: "40dp"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "添加题目"; on_release: root.add_manual()
+			Button: text: "清空表单"; on_release: root.clear_form()
+		Label: text: root.status; color: (0,1,0,1)
+		Label: text: "分类统计："
+		ScrollView:
+			Label:
+				id: counts
+				text: ""
+				text_size: self.width, None
+				size_hint_y: None
+				height: self.texture_size[1]
 
 <PracticeScreen>:
-name: "practice"
-BoxLayout:
-orientation: "vertical"; padding: "12dp"; spacing: "8dp"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "返回"; on_release: app.root.current = "home"
-Label: text: "练习模式"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Spinner:
-id: cat_filter; text: "全部"; values: ["全部","测试理论","工具-Postman","工具-Jmeter","工具-Selenium","自动化框架","性能安全","编程-Python","编程-SQL"]
-Spinner:
-id: type_filter; text: "全部"; values: ["全部","mcq","qa","code"]
-Spinner:
-id: diff_filter; text: "全部"; values: ["全部","初","中","高"]
-TextInput:
-id: count_input; hint_text: "题量(如20)"; size_hint_x: .3
-TextInput:
-id: tl_input; hint_text: "时限秒(如1200)"; size_hint_x: .4
-Button:
-text: "定向开始"
-on_release:
-root.setup_session({
-"category": cat_filter.text if cat_filter.text!="全部" else None,
-"types": [type_filter.text] if type_filter.text!="全部" else None,
-"difficulties": [diff_filter.text] if diff_filter.text!="全部" else None,
-"random": False,
-"count": int(count_input.text) if count_input.text else None,
-"time_limit": int(tl_input.text) if tl_input.text else 0})
-Button:
-text: "随机开始"
-on_release:
-root.setup_session({
-"category": None,
-"types": None,
-"difficulties": None,
-"random": True,
-"count": int(count_input.text) if count_input.text else None,
-"time_limit": int(tl_input.text) if tl_input.text else 0})
-Label:
-id: time_label; text: ""
-size_hint_y: None; height: "24dp"
-Label:
-id: q_text; text: ""
-text_size: self.width, None
-size_hint_y: None; height: self.texture_size[1] + dp(8)
-Label:
-id: type_label; text: ""
-size_hint_y: None; height: "24dp"
-ScrollView:
-BoxLayout:
-id: options_box
-orientation: "vertical"
-size_hint_y: None
-height: self.minimum_height
-TextInput:
-id: answer_input
-multiline: True
-hint_text: "在此填写答案（非选择题）"
-size_hint_y: None; height: "120dp"
-opacity: 0
-Label:
-text: root.result_text if root.show_result else ""
-color: (0,1,0,1) if "✅" in root.result_text else (1,0,0,1)
-size_hint_y: None; height: self.texture_size[1] + dp(8)
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Label: text: root.progress
-Button: text: "提交"; on_release: root.submit()
-Button: text: "下一题"; on_release: root.next_q()
-Button: text: "错题本"; on_release: root.redo_wrongs()
+	name: "practice"
+	BoxLayout:
+		orientation: "vertical"; padding: "12dp"; spacing: "8dp"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "返回"; on_release: app.root.current = "home"
+			Label: text: "练习模式"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Spinner:
+				id: cat_filter; text: "全部"; values: ["全部","测试理论","工具-Postman","工具-Jmeter","工具-Selenium","自动化框架","性能安全","编程-Python","编程-SQL"]
+			Spinner:
+				id: type_filter; text: "全部"; values: ["全部","mcq","qa","code"]
+			Spinner:
+				id: diff_filter; text: "全部"; values: ["全部","初","中","高"]
+			TextInput:
+				id: count_input; hint_text: "题量(如20)"; size_hint_x: .3
+			TextInput:
+				id: tl_input; hint_text: "时限秒(如1200)"; size_hint_x: .4
+			Button:
+				text: "定向开始"
+				on_release:
+					root.setup_session({
+					"category": cat_filter.text if cat_filter.text!="全部" else None,
+					"types": [type_filter.text] if type_filter.text!="全部" else None,
+					"difficulties": [diff_filter.text] if diff_filter.text!="全部" else None,
+					"random": False,
+					"count": int(count_input.text) if count_input.text else None,
+					"time_limit": int(tl_input.text) if tl_input.text else 0})
+			Button:
+				text: "随机开始"
+				on_release:
+					root.setup_session({
+					"category": None,
+					"types": None,
+					"difficulties": None,
+					"random": True,
+					"count": int(count_input.text) if count_input.text else None,
+					"time_limit": int(tl_input.text) if tl_input.text else 0})
+		Label:
+			id: time_label; text: ""
+			size_hint_y: None; height: "24dp"
+		Label:
+			id: q_text; text: ""
+			text_size: self.width, None
+			size_hint_y: None; height: self.texture_size[1] + dp(8)
+		Label:
+			id: type_label; text: ""
+			size_hint_y: None; height: "24dp"
+		ScrollView:
+			BoxLayout:
+				id: options_box
+				orientation: "vertical"
+				size_hint_y: None
+				height: self.minimum_height
+		TextInput:
+			id: answer_input
+			multiline: True
+			hint_text: "在此填写答案（非选择题）"
+			size_hint_y: None; height: "120dp"
+			opacity: 0
+		Label:
+			text: root.result_text if root.show_result else ""
+			color: (0,1,0,1) if "✅" in root.result_text else (1,0,0,1)
+			size_hint_y: None; height: self.texture_size[1] + dp(8)
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Label: text: root.progress
+			Button: text: "提交"; on_release: root.submit()
+			Button: text: "下一题"; on_release: root.next_q()
+			Button: text: "错题本"; on_release: root.redo_wrongs()
 
 <InterviewScreen>:
-name: "interview"
-BoxLayout:
-orientation: "vertical"; padding: "12dp"; spacing: "8dp"
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "返回"; on_release: app.root.current = "home"
-Label: text: "模拟面试"
-Label:
-id: iq_text; text: ""
-text_size: self.width, None
-size_hint_y: None; height: self.texture_size[1] + dp(8)
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "开始/暂停"; on_release: root.start_pause()
-Button: text: "录音/停止"; on_release: root.record_toggle()
-Label: text: root.rec_status
-Label: text: f"已用时 {root.timer}s"
-TextInput:
-id: answer_input; multiline: True; hint_text: "作答要点..."
-BoxLayout:
-size_hint_y: None; height: "44dp"; spacing: "8dp"
-Button: text: "下一题"; on_release: root.next_q()
-Label:
-id: report_label; text: ""
-size_hint_y: None; height: self.texture_size[1]
+	name: "interview"
+	BoxLayout:
+		orientation: "vertical"; padding: "12dp"; spacing: "8dp"
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "返回"; on_release: app.root.current = "home"
+			Label: text: "模拟面试"
+		Label:
+			id: iq_text; text: ""
+			text_size: self.width, None
+			size_hint_y: None; height: self.texture_size[1] + dp(8)
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "开始/暂停"; on_release: root.start_pause()
+			Button: text: "录音/停止"; on_release: root.record_toggle()
+			Label: text: root.rec_status
+			Label: text: f"已用时 {root.timer}s"
+		TextInput:
+			id: answer_input; multiline: True; hint_text: "作答要点..."
+		BoxLayout:
+			size_hint_y: None; height: "44dp"; spacing: "8dp"
+			Button: text: "下一题"; on_release: root.next_q()
+		Label:
+			id: report_label; text: ""
+			size_hint_y: None; height: self.texture_size[1]
 
 <Root>:
-HomeScreen:
-ManageScreen:
-PracticeScreen:
-InterviewScreen:
+	HomeScreen:
+	ManageScreen:
+	PracticeScreen:
+	InterviewScreen:
